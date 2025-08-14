@@ -1,0 +1,19 @@
+[build-system]
+requires = [
+    "setuptools==80.7.1",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural-network"
+description = "A simple neural network in python."
+version = "0.0.1"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy==2.3.2",
+    "pillow==11.3.0"
+]
+readme = "README.md"
+authors = [
+    { name = "Thomas Reno" }
+]
