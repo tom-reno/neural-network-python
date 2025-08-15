@@ -61,5 +61,4 @@ if __name__ == '__main__':
             label = int((file.split('/')[-1]).split('-')[0])
             neural_network.train(label, learning_rate, training_iterations)
 
-        stop_time = datetime.now()
-        print(f'Finished in {(stop_time - start_time).total_seconds()} seconds')
+        print(f'Finished in {(datetime.now() - start_time).total_seconds()} seconds')

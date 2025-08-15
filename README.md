@@ -18,12 +18,12 @@ cd neural-network-python
 python3 -m venv .venv
 source .venv/bin/activate
 
-python3 -m pip install -e .
+python3 -m pip install -r requirements.txt
 ```
 
 ## Run
 
-`python3 -m neural_network <optional arguments>`
+`python3 -m neural_network <optional arguments, e.g. --mode=training>`
 
 | Argument                     | Choises                        | Default       | Description                                           |
 |------------------------------|--------------------------------|---------------|-------------------------------------------------------|
