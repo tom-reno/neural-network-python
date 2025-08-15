@@ -37,7 +37,7 @@ class NeuralNetwork:
         for iteration in range(training_iterations + 1):
             outputs = self.evaluate()
             if iteration % 10 == 0:
-                print(f'Iteration {iteration} output {outputs}')
+                print(f'Iteration {iteration} output for label {label}: {outputs}')
             self.__propagate_backward(expected_outputs, outputs, learning_rate)
 
     def __propagate_forward(self) -> list:
