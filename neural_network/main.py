@@ -5,20 +5,21 @@ from datetime import datetime
 import numpy as np
 from PIL import Image
 
-from neural_network.application import NeuralNetwork
+from neural_network import NeuralNetwork
 
+SUPPORTED_FILETYPES = ('.jpg', '.jpeg', '.png')
+TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
 MODES = ('evaluation', 'training')
+
 DEFAULT_ACTIVATION_FUNCTION = 'sigmoid'
 DEFAULT_AMOUNT_HIDDEN_LAYERS = 1
 DEFAULT_MODE = 'training'
 DEFAULT_LEARNING_RATE = 0.01
 DEFAULT_TRAINING_ITERATIONS = 1000
 DEFAULT_IMAGE_SIZE = (28, 28)
-SUPPORTED_FILETYPES = ('.jpg', '.jpeg', '.png')
-TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-def _retrieve_args():
+def __retrieve_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', choices=MODES, type=str, default=DEFAULT_MODE)
     parser.add_argument('--data', type=str)
@@ -32,9 +33,9 @@ def _retrieve_args():
     return parser.parse_args()
 
 if __name__ == '__main__':
-    start_time = datetime.now()
+    total_start_time = datetime.now()
 
-    args = _retrieve_args()
+    args = __retrieve_args()
     mode = args.mode
     data = args.data or f'./data/{mode}'
 
@@ -55,17 +56,21 @@ if __name__ == '__main__':
         if not file.endswith(SUPPORTED_FILETYPES):
             continue
 
+        start_time = datetime.now()
+
         image = Image.open(f'{data}/{file}')
         image = image.resize(DEFAULT_IMAGE_SIZE)
         neural_network.set_image_data(np.array(image))
 
+        label = int((file.split('/')[-1]).split('-')[0])
         if mode == 'evaluation':
             output = neural_network.evaluate()
             print(f'Evaluation result: {output.index(np.max(output))}')
         else:
-            label = int((file.split('/')[-1]).split('-')[0])
             neural_network.train(label, args.learning_rate, args.training_iterations)
             output = neural_network.evaluate()
-            print(f'Evaluation result for label {label}: {output.index(np.max(output))}')
 
-        print(f'Finished in {(datetime.now() - start_time).total_seconds()} seconds.')
+        print(f'Evaluation result for label {label}: {output.index(np.max(output))}')
+        print(f'Finished label {label} in {(datetime.now() - start_time).total_seconds()} seconds.')
+
+    print(f'Finished totally in {(datetime.now() - total_start_time).total_seconds()} seconds.')

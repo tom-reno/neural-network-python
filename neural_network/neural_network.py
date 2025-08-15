@@ -1,6 +1,6 @@
 import numpy as np
 
-from neural_network import activation_functions as af
+import activation_functions as af
 
 class NeuralNetwork:
     __image_data = None
@@ -34,7 +34,7 @@ class NeuralNetwork:
     def train(self, label, learning_rate, training_iterations):
         print(f'Training neural network for label {label} in {training_iterations} iterations ...')
         expected_outputs = self.__retrieve_expected_outputs(label)
-        for iteration in range(training_iterations):
+        for iteration in range(training_iterations + 1):
             outputs = self.evaluate()
             if iteration % 10 == 0:
                 print(f'Iteration {iteration} output {outputs}')
