@@ -1,6 +1,6 @@
 import numpy as np
 
-from src import activation_functions as af
+from neural_network import activation_functions as af
 
 class NeuralNetwork:
     layers = None
@@ -41,17 +41,13 @@ class NeuralNetwork:
         # Calculate errors
         errors = [[(expected_outputs[i] - outputs[i]) for i in range(len(outputs))]]
 
-        for i in range(len(self.layers) - 2, 0, -1):
-            layer_errors = []
-            for j in range(len(self.layers[i])):
-                error_sum = 0
-                for k in range(len(self.layers[i + 1])):
-                    error_sum += errors[0][k] * self.weights[i][j][k]
-                layer_errors.append(error_sum)
-            errors.insert(0, layer_errors)
+        start_layer = len(self.layers) - 2
+        for i in range(start_layer, 0, -1):
+            errors.insert(0, [sum(errors[0][k] * self.weights[i][j][k] for k in range(len(self.layers[i + 1])))
+                              for j in range(len(self.layers[i]))])
 
         # Adjust weights and biases
-        for i in range(len(self.layers) - 2, -1, -1):
+        for i in range(start_layer, -1, -1):
             for j in range(len(errors[i])):
                 for k in range(len(self.weights[i])):
                     self.weights[i][k][j] += learning_rate * errors[i][j] * af.sigmoid_derivative(self.layers[i][k])

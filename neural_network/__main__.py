@@ -5,7 +5,7 @@ from datetime import datetime
 import numpy as np
 from PIL import Image
 
-from src.neural_network import NeuralNetwork
+from neural_network.application import NeuralNetwork
 
 ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
 MODES = ('evaluation', 'training')
@@ -19,8 +19,8 @@ TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 def _retrieve_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str)
     parser.add_argument('--mode', choices=MODES, type=str, default=DEFAULT_MODE)
+    parser.add_argument('--data', type=str)
     parser.add_argument('--amount-hidden-layers', type=int, default=DEFAULT_AMOUNT_HIDDEN_LAYERS)
     parser.add_argument('--hidden-activation-function', type=str, choices=ACTIVATION_FUNCTIONS,
                         default=DEFAULT_ACTIVATION_FUNCTION)
