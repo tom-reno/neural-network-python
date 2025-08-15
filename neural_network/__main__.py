@@ -1,5 +1,5 @@
 import argparse
-import os
+import glob
 from datetime import datetime
 
 import numpy as np
@@ -7,10 +7,10 @@ from PIL import Image
 
 from neural_network import NeuralNetwork
 
-SUPPORTED_FILETYPES = ('.jpg', '.jpeg', '.png')
+SUPPORTED_FILETYPES = ('jpg', 'jpeg', 'png')
 TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
-MODES = ('evaluation', 'training')
+MODES = ('prediction', 'training')
 
 DEFAULT_ACTIVATION_FUNCTION = 'sigmoid'
 DEFAULT_AMOUNT_HIDDEN_LAYERS = 1
@@ -33,16 +33,11 @@ def __retrieve_args():
     return parser.parse_args()
 
 if __name__ == '__main__':
-    total_start_time = datetime.now()
-
     args = __retrieve_args()
     mode = args.mode
     data = args.data or f'./data/{mode}'
 
     print(f'Running neural network in {mode} mode with data in directory {data} ...')
-
-    files = os.listdir(data)
-    np.random.shuffle(files)
 
     neural_network = NeuralNetwork(
         np.prod(DEFAULT_IMAGE_SIZE),
@@ -52,25 +47,24 @@ if __name__ == '__main__':
         TARGETS
     )
 
-    for file in files:
-        if not file.endswith(SUPPORTED_FILETYPES):
-            continue
+    filenames = []
+    for filetype in SUPPORTED_FILETYPES:
+        filenames.extend(glob.glob(f'{data}/*.{filetype}'))
+    np.random.shuffle(filenames)
 
-        start_time = datetime.now()
+    if mode == 'training':
+        training_start_time = datetime.now()
+        images = [
+            [int((filename.split('/')[-1]).split('-')[0]), np.array(Image.open(filename).resize(DEFAULT_IMAGE_SIZE))]
+            for filename in filenames]
+        neural_network.train(images, args.learning_rate, args.training_iterations)
+        print(f'Finished training in {(datetime.now() - training_start_time).total_seconds()} seconds.')
+        mode = 'prediction'
 
-        image = Image.open(f'{data}/{file}')
-        image = image.resize(DEFAULT_IMAGE_SIZE)
-        neural_network.set_image_data(np.array(image))
-
-        label = int((file.split('/')[-1]).split('-')[0])
-        if mode == 'evaluation':
-            output = neural_network.evaluate()
-            print(f'Evaluation result: {output.index(np.max(output))}')
-        else:
-            neural_network.train(label, args.learning_rate, args.training_iterations)
-            output = neural_network.evaluate()
-
-        print(f'Evaluation result for label {label}: {output.index(np.max(output))}')
-        print(f'Finished label {label} in {(datetime.now() - start_time).total_seconds()} seconds.')
-
-    print(f'Finished totally in {(datetime.now() - total_start_time).total_seconds()} seconds.')
+    if mode == 'prediction':
+        prediction_start_time = datetime.now()
+        for filename in filenames:
+            image = np.array(Image.open(filename).resize(DEFAULT_IMAGE_SIZE))
+            prediction = neural_network.predict(image)
+            print(f'Prediction result for filename {filename}: {prediction}')
+            print(f'Finished prediction in {(datetime.now() - prediction_start_time).total_seconds()} seconds.')
