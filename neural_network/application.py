@@ -3,19 +3,30 @@ import numpy as np
 from neural_network import activation_functions as af
 
 class NeuralNetwork:
+    __image_data = None
     __layers = None
+    __weights = None
+    __biases = None
 
-    def __init__(self, amount_hidden_layers, hidden_activation_function, output_activation_function, inputs, targets):
+    def __init__(
+            self,
+            amount_input_nodes,
+            amount_hidden_layers,
+            hidden_activation_function,
+            output_activation_function,
+            targets
+    ):
         print("Initializing neural network ...")
+        self.__amount_input_nodes = amount_input_nodes
         self.__amount_hidden_layers = amount_hidden_layers
         self.__hidden_activation_function = hidden_activation_function
         self.__output_activation_function = output_activation_function
-        self.__inputs = inputs
         self.__targets = targets
-        self.__initialize_layers()
-        np.random.seed(42)
-        self.__weights = self.__retrieve_weights()
-        self.__biases = self.__retrieve_biases()
+        self.__initialize_network()
+
+    def set_image_data(self, image_data):
+        self.__image_data = image_data
+        self.__layers[0] = [af.sigmoid_activation(input_value) for input_value in np.ndarray.flatten(image_data)]
 
     def evaluate(self) -> list:
         return self.__propagate_forward()
@@ -55,26 +66,36 @@ class NeuralNetwork:
                 for k in range(len(self.__biases[i])):
                     self.__biases[i][k] += learning_rate * errors[i][j]
 
-        # Reset layers
+        self.__reset_layers()
+
+    def __initialize_network(self):
+        np.random.seed(42)
         self.__initialize_layers()
+        self.__initialize_weights()
+        self.__initialize_biases()
 
     def __initialize_layers(self):
         self.__layers = []
-        self.__layers.append([af.sigmoid_activation(input_value)
-                              for input_value in np.ndarray.flatten(self.__inputs).tolist()])
+        self.__layers.append([0 for _ in range(self.__amount_input_nodes)])
         for _ in range(self.__amount_hidden_layers): self.__layers.append([0 for _ in range(len(self.__targets) * 2)])
         self.__layers.append([0 for _ in range(len(self.__targets))])
 
-    def __retrieve_weights(self):
+    def __reset_layers(self):
+        for layerIndex in range(1, len(self.__layers) - 1):
+            self.__layers[layerIndex] = [0 for _ in range(len(self.__targets) * 2)]
+        self.__layers[-1] = [0 for _ in range(len(self.__targets))]
+
+    def __initialize_weights(self):
         # TODO retrieve from database or file
         # weights[layer][prev_node][next_node]
-        return [[[np.random.uniform(-1, 1) for _ in range(len(self.__layers[i + 1]))] for _ in range(len(self.__layers[i]))]
-                for i in range(len(self.__layers) - 1)]
+        self.__weights = [[[np.random.uniform(-1, 1) for _ in range(len(self.__layers[i + 1]))]
+                           for _ in range(len(self.__layers[i]))] for i in range(len(self.__layers) - 1)]
 
-    def __retrieve_biases(self):
+    def __initialize_biases(self):
         # TODO retrieve from database or file
         # biases[layer][next_node]
-        return [[np.random.uniform(-1, 1) for _ in range(len(self.__layers[i]))] for i in range(1, len(self.__layers))]
+        self.__biases = [[np.random.uniform(-1, 1) for _ in range(len(self.__layers[i]))]
+                         for i in range(1, len(self.__layers))]
 
     def __retrieve_expected_outputs(self, label):
         expected_outputs = [0 for _ in range(len(self.__targets))]

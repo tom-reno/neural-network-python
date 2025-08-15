@@ -14,6 +14,7 @@ DEFAULT_AMOUNT_HIDDEN_LAYERS = 1
 DEFAULT_MODE = 'training'
 DEFAULT_LEARNING_RATE = 0.01
 DEFAULT_TRAINING_ITERATIONS = 1000
+DEFAULT_IMAGE_SIZE = (28, 28)
 SUPPORTED_FILETYPES = ('.jpg', '.jpeg', '.png')
 TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -39,20 +40,24 @@ if __name__ == '__main__':
 
     print(f'Running neural network in {mode} mode with data in directory {data} ...')
 
-    for file in os.listdir(data):
+    files = os.listdir(data)
+    np.random.shuffle(files)
+
+    neural_network = NeuralNetwork(
+        np.prod(DEFAULT_IMAGE_SIZE),
+        args.amount_hidden_layers,
+        args.hidden_activation_function,
+        args.output_activation_function,
+        TARGETS
+    )
+
+    for file in files:
         if not file.endswith(SUPPORTED_FILETYPES):
             continue
 
         image = Image.open(f'{data}/{file}')
-        inputs = np.array(image)
-
-        neural_network = NeuralNetwork(
-            args.amount_hidden_layers,
-            args.hidden_activation_function,
-            args.output_activation_function,
-            inputs,
-            TARGETS
-        )
+        image = image.resize(DEFAULT_IMAGE_SIZE)
+        neural_network.set_image_data(np.array(image))
 
         if mode == 'evaluation':
             output = neural_network.evaluate()
@@ -60,5 +65,7 @@ if __name__ == '__main__':
         else:
             label = int((file.split('/')[-1]).split('-')[0])
             neural_network.train(label, args.learning_rate, args.training_iterations)
+            output = neural_network.evaluate()
+            print(f'Evaluation result for label {label}: {output.index(np.max(output))}')
 
         print(f'Finished in {(datetime.now() - start_time).total_seconds()} seconds.')
