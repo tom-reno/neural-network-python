@@ -32,15 +32,10 @@ def _retrieve_args():
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    args = _retrieve_args()
 
+    args = _retrieve_args()
     mode = args.mode
     data = args.data or f'./data/{mode}'
-    amount_hidden_layers = args.amount_hidden_layers
-    hidden_activation_function = args.hidden_activation_function
-    output_activation_function = args.output_activation_function
-    learning_rate = args.learning_rate
-    training_iterations = args.training_iterations
 
     print(f'Running neural network in {mode} mode with data in directory {data} ...')
 
@@ -51,14 +46,19 @@ if __name__ == '__main__':
         image = Image.open(f'{data}/{file}')
         inputs = np.array(image)
 
-        neural_network = NeuralNetwork(amount_hidden_layers, hidden_activation_function, output_activation_function,
-                                       inputs, TARGETS)
+        neural_network = NeuralNetwork(
+            args.amount_hidden_layers,
+            args.hidden_activation_function,
+            args.output_activation_function,
+            inputs,
+            TARGETS
+        )
 
         if mode == 'evaluation':
             output = neural_network.evaluate()
             print(f'Evaluation result: {output.index(np.max(output))}')
         else:
             label = int((file.split('/')[-1]).split('-')[0])
-            neural_network.train(label, learning_rate, training_iterations)
+            neural_network.train(label, args.learning_rate, args.training_iterations)
 
-        print(f'Finished in {(datetime.now() - start_time).total_seconds()} seconds')
+        print(f'Finished in {(datetime.now() - start_time).total_seconds()} seconds.')

@@ -23,7 +23,9 @@ python3 -m pip install -r requirements.txt
 
 ## Run
 
-`python3 -m neural_network <optional arguments, e.g. --mode=training>`
+```
+python3 -m neural_network <optional arguments, e.g. --mode=training>
+```
 
 | Argument                     | Choises                        | Default       | Description                                           |
 |------------------------------|--------------------------------|---------------|-------------------------------------------------------|
