@@ -8,12 +8,12 @@ from PIL import Image
 from neural_network import NeuralNetwork
 
 SUPPORTED_FILETYPES = ('jpg', 'jpeg', 'png')
-TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
 MODES = ('prediction', 'training')
+ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
+TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 DEFAULT_ACTIVATION_FUNCTION = 'sigmoid'
-DEFAULT_AMOUNT_HIDDEN_LAYERS = 1
+DEFAULT_AMOUNT_HIDDEN_LAYERS = 2
 DEFAULT_MODE = 'training'
 DEFAULT_LEARNING_RATE = 0.01
 DEFAULT_TRAINING_ITERATIONS = 1000
