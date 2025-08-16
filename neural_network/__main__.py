@@ -66,5 +66,5 @@ if __name__ == '__main__':
         for filename in filenames:
             image = np.array(Image.open(filename).resize(DEFAULT_IMAGE_SIZE))
             prediction = neural_network.predict(image)
-            print(f'Prediction result for filename {filename}: {prediction}')
+            print(f'Prediction result for file {filename}: {prediction}')
             print(f'Finished prediction in {(datetime.now() - prediction_start_time).total_seconds()} seconds.')
