@@ -1,5 +1,6 @@
 import argparse
 import glob
+import os.path
 from datetime import datetime
 import pandas as pd
 
@@ -13,7 +14,7 @@ SUPPORTED_IMG_FILES = ('jpg', 'jpeg', 'png')
 SUPPORTED_FILETYPES = ('csv', 'jpg', 'jpeg', 'png')
 MODES = ('prediction', 'training')
 ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
-TARGETS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+TARGETS_FILE = './data/config/targets.npy'
 
 DEFAULT_IMAGE_SIZE = (40, 40)
 DEFAULT_MODE = 'training'
@@ -40,19 +41,22 @@ def retrieve_args():
     return parser.parse_args()
 
 def retrieve_targets(image_data):
-    loaded_targets = np.load('./data/config/targets.npy', allow_pickle=True)
+    if not os.path.exists(TARGETS_FILE):
+        np.save(TARGETS_FILE, [])
+
+    loaded_targets = np.load(TARGETS_FILE, allow_pickle=True)
     image_targets = set([entry[1][0] for entry in image_data])
 
     target_diffs = image_targets.difference(loaded_targets)
     if target_diffs:
         loaded_targets = np.concatenate((loaded_targets, list(target_diffs)), axis=0)
-        np.save('./data/config/targets.npy', loaded_targets)
+        np.save(TARGETS_FILE, loaded_targets)
 
     return loaded_targets
 
 def retrieve_image_data(file_name) -> list:
     if file_name.endswith('.csv'):
-        csv = np.array(pd.read_csv(file_name, dtype=str))
+        csv = np.array(pd.read_csv(file_name, dtype=str, header=None))
         return [[file_name, [entry[:1][0], [int(value) for value in entry[1:]]]] for entry in csv]
     elif file_name.endswith(SUPPORTED_IMG_FILES):
         image_data = np.array(Image.open(file_name).resize(DEFAULT_IMAGE_SIZE))

@@ -1,8 +1,9 @@
-import pickle
-
 import numpy as np
 
 from utils import activation_functions as af
+from utils import array_utils as au
+from utils import file_utils as fu
+
 
 class NeuralNetwork:
     __layers: list = None
@@ -24,19 +25,6 @@ class NeuralNetwork:
         self.__targets = targets
 
         self.__initialize_network()
-
-    def __initialize_network(self):
-        print(f'Initializing neural network with following properties:\n'
-              f'    - Amount input nodes: {self.__amount_input_nodes}\n'
-              f'    - Amount hidden layers: {self.__amount_hidden_layers}\n'
-              f'    - Activation function for hidden layers: {self.__hidden_activation_function}\n'
-              f'    - Activation function for output layer: {self.__output_activation_function}\n'
-              f'    - Targets: {', '.join(str(target) for target in self.__targets)}')
-
-        np.random.seed(42)
-        self.__initialize_layers()
-        self.__initialize_weights()
-        self.__initialize_biases()
 
     def predict(self, image) -> int:
         self.__layers[0] = af.sigmoid_activation(image[1][1])
@@ -63,6 +51,11 @@ class NeuralNetwork:
 
                 self.__propagate_backward(expected_outputs, outputs, learning_rate)
 
+            if iteration % batch_size == 0:
+                self.__save_to_config(f'_checkpoint_{iteration}')
+
+        self.__save_to_config()
+
     def __propagate_forward(self) -> list:
         for i in range(len(self.__layers) - 1):
             sums_prev_nodes = np.dot(self.__layers[i], self.__weights[i]) + self.__biases[i]
@@ -83,6 +76,19 @@ class NeuralNetwork:
                 self.__weights[i][j] += errors[i] * af.sigmoid_derivative(self.__layers[i][j] * learning_rate)
 
         self.__reset_layers()
+
+    def __initialize_network(self):
+        print(f'Initializing neural network with following properties:\n'
+              f'    - Amount input nodes: {self.__amount_input_nodes}\n'
+              f'    - Amount hidden layers: {self.__amount_hidden_layers}\n'
+              f'    - Activation function for hidden layers: {self.__hidden_activation_function}\n'
+              f'    - Activation function for output layer: {self.__output_activation_function}\n'
+              f'    - Targets: {', '.join(str(target) for target in self.__targets)}')
+
+        np.random.seed(42)
+        self.__initialize_layers()
+        self.__initialize_weights()
+        self.__initialize_biases()
 
     def __initialize_layers(self):
         self.__layers = [np.zeros(self.__amount_input_nodes)]
@@ -113,3 +119,13 @@ class NeuralNetwork:
         expected_outputs = np.zeros(len(self.__targets))
         expected_outputs[np.where(self.__targets == label)] = 1
         return expected_outputs
+
+    def __save_to_config(self, postfix=''):
+        weights_shape = au.jagged_shape(self.__weights)
+        fu.save_to_file(self.__retrieve_filename('weights', weights_shape, postfix), self.__weights)
+        biases_shape = au.jagged_shape(self.__biases)
+        fu.save_to_file(self.__retrieve_filename('biases', biases_shape, postfix), self.__biases)
+
+    @staticmethod
+    def __retrieve_filename(prefix, jagged_shape, postfix=''):
+        return f'./data/config/{prefix}_{''.join(f'({','.join(f'{length}' for length in shape)})' for shape in jagged_shape)}{postfix}.pkl'
