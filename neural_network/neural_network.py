@@ -56,7 +56,7 @@ class NeuralNetwork:
         # weights[layer starting from 0][current_layer_node][next_layer_node]
         filename = self.__retrieve_weights_config_filename(layers_shape)
         if os.path.exists(filename):
-            self.__weights = fu.load_from_file(filename)
+            self.__weights = fu.load(filename)
         else:
             self.__weights = []
             for i in range(len(self.__layers) - 1):
@@ -66,7 +66,7 @@ class NeuralNetwork:
         # biases[layer starting from 1][current_layer_node]
         filename = self.__retrieve_biases_config_filename(layers_shape)
         if os.path.exists(filename):
-            self.__biases = fu.load_from_file(filename)
+            self.__biases = fu.load(filename)
         else:
             self.__biases = []
             for i in range(1, len(self.__layers)):
@@ -101,7 +101,7 @@ class NeuralNetwork:
                 self.__save_configs(f'_cp_{iteration}')
 
         self.__save_configs()
-        fu.delete_files('./data/config/*_cp_*.pkl')
+        fu.delete('./data/config/*_cp_*.pkl')
 
     def __propagate_forward(self) -> list:
         for i in range(len(self.__layers) - 1):
@@ -131,8 +131,8 @@ class NeuralNetwork:
 
     def __save_configs(self, postfix=''):
         layers_shape = au.jagged_shape(self.__layers)
-        fu.save_to_file(self.__retrieve_weights_config_filename(layers_shape, postfix), self.__weights)
-        fu.save_to_file(self.__retrieve_biases_config_filename(layers_shape, postfix), self.__biases)
+        fu.save(self.__weights, self.__retrieve_weights_config_filename(layers_shape, postfix))
+        fu.save(self.__biases, self.__retrieve_biases_config_filename(layers_shape, postfix))
 
     def __retrieve_weights_config_filename(self, layers_shape, postfix=''):
         return (

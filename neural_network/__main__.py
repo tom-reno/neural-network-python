@@ -1,20 +1,20 @@
 import argparse
 import glob
-import os.path
 from datetime import datetime
-import pandas as pd
 
 import numpy as np
+import pandas as pd
 from PIL import Image
 
 from neural_network import NeuralNetwork
+from utils import file_utils as fu
 
 TYPES = ('csv', 'img')
 SUPPORTED_IMG_FILES = ('jpg', 'jpeg', 'png')
 SUPPORTED_FILETYPES = ('csv', 'jpg', 'jpeg', 'png')
 MODES = ('prediction', 'training')
 ACTIVATION_FUNCTIONS = ('sigmoid', 'softmax', 'tanh', 'relu')
-TARGETS_FILE = './data/config/targets.npy'
+TARGETS_FILE = './data/config/targets.pkl'
 
 DEFAULT_IMAGE_SIZE = (40, 40)
 DEFAULT_MODE = 'training'
@@ -41,16 +41,13 @@ def retrieve_args():
     return parser.parse_args()
 
 def retrieve_targets(image_data):
-    if not os.path.exists(TARGETS_FILE):
-        np.save(TARGETS_FILE, [])
-
-    loaded_targets = np.load(TARGETS_FILE, allow_pickle=True)
+    loaded_targets = fu.load(TARGETS_FILE, True)
     image_targets = set([entry[1][0] for entry in image_data])
 
     target_diffs = image_targets.difference(loaded_targets)
     if target_diffs:
         loaded_targets = np.concatenate((loaded_targets, list(target_diffs)), axis=0)
-        np.save(TARGETS_FILE, loaded_targets)
+        fu.save(loaded_targets, TARGETS_FILE)
 
     return loaded_targets
 
