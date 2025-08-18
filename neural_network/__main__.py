@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from neural_network import NeuralNetwork
+from app.neural_network import NeuralNetwork
 from utils import file_utils as fu
 
 TYPES = ('csv', 'img')
