@@ -103,9 +103,9 @@ class NeuralNetwork:
         for i in range(1, len(self.__layers)):
             self.__layers[i] = np.zeros(len(self.__layers[i]))
 
-    def __initialize_weights(self, shape):
+    def __initialize_weights(self, layers_shape):
         # weights[layer starting from 0][current_layer_node][next_layer_node]
-        filename = f'./data/config/weights_{''.join(f'({shape[i][0]},{shape[i + 1][0]})' for i in range(len(shape) - 1))}.pkl'
+        filename = self.__retrieve_weights_filename(layers_shape)
         if os.path.exists(filename):
             self.__weights = fu.load_from_file(filename)
         else:
@@ -113,9 +113,9 @@ class NeuralNetwork:
             for i in range(len(self.__layers) - 1):
                 self.__weights.append(np.random.rand(len(self.__layers[i]), len(self.__layers[i + 1])) - 0.5)
 
-    def __initialize_biases(self, shape):
+    def __initialize_biases(self, layers_shape):
         # biases[layer starting from 1][current_layer_node]
-        filename = f'./data/config/biases_{''.join(f'({shape[i][0]})' for i in range(1, len(shape)))}.pkl'
+        filename = self.__retrieve_biases_filename(layers_shape)
         if os.path.exists(filename):
             self.__biases = fu.load_from_file(filename)
         else:
@@ -129,12 +129,20 @@ class NeuralNetwork:
         return expected_outputs
 
     def __save_to_config(self, postfix=''):
-        weights_shape = au.jagged_shape(self.__weights)
-        fu.save_to_file(self.__retrieve_filename('weights', weights_shape, postfix), self.__weights)
-        biases_shape = au.jagged_shape(self.__biases)
-        fu.save_to_file(self.__retrieve_filename('biases', biases_shape, postfix), self.__biases)
+        layers_shape = au.jagged_shape(self.__layers)
+        fu.save_to_file(self.__retrieve_weights_filename(layers_shape, postfix), self.__weights)
+        fu.save_to_file(self.__retrieve_biases_filename(layers_shape, postfix), self.__biases)
 
-    @staticmethod
-    def __retrieve_filename(prefix, jagged_shape, postfix=''):
-        return f'./data/config/{prefix}_{''.join(f'({','.join(f'{length}' for length in shape)})' 
-                                                 for shape in jagged_shape)}{postfix}.pkl'
+    def __retrieve_weights_filename(self, layers_shape, postfix=''):
+        return (
+            f'./data/config/weights_'
+            f'{''.join(f'({layers_shape[i][0]},{layers_shape[i + 1][0]})' for i in range(len(layers_shape) - 1))}'
+            f'_{self.__hidden_activation_function}_{self.__output_activation_function}{postfix}.pkl'
+        )
+
+    def __retrieve_biases_filename(self, layers_shape, postfix=''):
+        return (
+            f'./data/config/biases_'
+            f'{''.join(f'({layers_shape[i][0]})' for i in range(1, len(layers_shape)))}'
+            f'_{self.__hidden_activation_function}_{self.__output_activation_function}{postfix}.pkl'
+        )
