@@ -101,6 +101,6 @@ if __name__ == '__main__':
     if mode == 'prediction':
         for image in images:
             prediction = neural_network.predict(image[1])
-            print(f'Prediction result for file {image[0]}: {prediction}')
+            print(f'Prediction result for file {image[0].split('/')[-1]} (label=\'{image[1][0]}\'): {prediction}')
 
     print(f'Finished {mode} in {(datetime.now() - start_time).total_seconds()} seconds.')

@@ -1,9 +1,10 @@
+import os.path
+
 import numpy as np
 
 from utils import activation_functions as af
 from utils import array_utils as au
 from utils import file_utils as fu
-
 
 class NeuralNetwork:
     __layers: list = None
@@ -27,9 +28,9 @@ class NeuralNetwork:
         self.__initialize_network()
 
     def predict(self, image) -> int:
-        self.__layers[0] = af.sigmoid_activation(image[1][1])
+        self.__layers[0] = af.sigmoid_activation(np.array(image[1]))
         output = self.__propagate_forward()
-        return np.argmax(output, 0)
+        return self.__targets[np.argmax(output, 0)]
 
     def train(self, images, learning_rate, training_iterations, batch_size):
         print(f'Training neural network with {len(images)} images in {training_iterations} iterations ...')
@@ -87,8 +88,9 @@ class NeuralNetwork:
 
         np.random.seed(42)
         self.__initialize_layers()
-        self.__initialize_weights()
-        self.__initialize_biases()
+        layers_shape = au.jagged_shape(self.__layers)
+        self.__initialize_weights(layers_shape)
+        self.__initialize_biases(layers_shape)
 
     def __initialize_layers(self):
         self.__layers = [np.zeros(self.__amount_input_nodes)]
@@ -101,19 +103,25 @@ class NeuralNetwork:
         for i in range(1, len(self.__layers)):
             self.__layers[i] = np.zeros(len(self.__layers[i]))
 
-    def __initialize_weights(self):
-        # TODO retrieve from database or file
+    def __initialize_weights(self, shape):
         # weights[layer starting from 0][current_layer_node][next_layer_node]
-        self.__weights = []
-        for i in range(len(self.__layers) - 1):
-            self.__weights.append(np.random.rand(len(self.__layers[i]), len(self.__layers[i + 1])) - 0.5)
+        filename = f'./data/config/weights_{''.join(f'({shape[i][0]},{shape[i + 1][0]})' for i in range(len(shape) - 1))}.pkl'
+        if os.path.exists(filename):
+            self.__weights = fu.load_from_file(filename)
+        else:
+            self.__weights = []
+            for i in range(len(self.__layers) - 1):
+                self.__weights.append(np.random.rand(len(self.__layers[i]), len(self.__layers[i + 1])) - 0.5)
 
-    def __initialize_biases(self):
-        # TODO retrieve from database or file
+    def __initialize_biases(self, shape):
         # biases[layer starting from 1][current_layer_node]
-        self.__biases = []
-        for i in range(1, len(self.__layers)):
-            self.__biases.append(np.random.rand(len(self.__layers[i])) - 0.5)
+        filename = f'./data/config/biases_{''.join(f'({shape[i][0]})' for i in range(1, len(shape)))}.pkl'
+        if os.path.exists(filename):
+            self.__biases = fu.load_from_file(filename)
+        else:
+            self.__biases = []
+            for i in range(1, len(self.__layers)):
+                self.__biases.append(np.random.rand(len(self.__layers[i])) - 0.5)
 
     def __retrieve_expected_outputs(self, label):
         expected_outputs = np.zeros(len(self.__targets))
@@ -128,4 +136,5 @@ class NeuralNetwork:
 
     @staticmethod
     def __retrieve_filename(prefix, jagged_shape, postfix=''):
-        return f'./data/config/{prefix}_{''.join(f'({','.join(f'{length}' for length in shape)})' for shape in jagged_shape)}{postfix}.pkl'
+        return f'./data/config/{prefix}_{''.join(f'({','.join(f'{length}' for length in shape)})' 
+                                                 for shape in jagged_shape)}{postfix}.pkl'
