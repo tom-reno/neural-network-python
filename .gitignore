@@ -5,9 +5,7 @@ build/
 .idea/
 
 # App
-data/training/csv/train*.csv
-data/training/tmp
 data/config/*
-!data/config/INFO.md
 data/prediction/*
-!data/prediction/INFO.md
+data/training/tmp
+!data/*/_INFO.md
