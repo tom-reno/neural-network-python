@@ -7,7 +7,9 @@ def save(something, filename):
         pickle.dump(something, file)
 
 def load(filename, create_if_not_exists=False):
-    if create_if_not_exists and not os.path.exists(filename):
+    if not os.path.exists(filename):
+        if not create_if_not_exists:
+            return None
         save([], filename)
     with open(filename, 'rb') as file:
         return pickle.load(file)

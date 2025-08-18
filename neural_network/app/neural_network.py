@@ -92,8 +92,8 @@ class NeuralNetwork:
                 outputs = self.__propagate_forward()
 
                 if iteration % batch_size == 0:
-                    outputs_string = ', '.join(f'{self.__targets[i]}={output}' for i, output in enumerate(outputs))
-                    print(f'Iteration {iteration} - Outputs for label {image_label}: {outputs_string}')
+                    output = np.array(outputs)[np.where(self.__targets == image_label)][0]
+                    print(f'Iteration {iteration} - Output label \'{image_label}\': {output}')
 
                 self.__propagate_backward(expected_outputs, outputs, learning_rate)
 
@@ -124,7 +124,7 @@ class NeuralNetwork:
 
         self.__reset_layers()
 
-    def __retrieve_expected_outputs(self, label):
+    def __retrieve_expected_outputs(self, label: str):
         expected_outputs = np.zeros(len(self.__targets))
         expected_outputs[np.where(self.__targets == label)] = 1
         return expected_outputs
