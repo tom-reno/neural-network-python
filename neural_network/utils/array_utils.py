@@ -1,16 +1,13 @@
-from typing import Tuple, Union, List
-
 import numpy as np
 
-
-def shape(ndarray: Union[List, float]) -> Tuple[int, ...]:
+def shape(ndarray: list | float) -> tuple[int, ...]:
     if isinstance(ndarray, list):
         array_size = len(ndarray)
         next_size = shape(ndarray[0])
         return array_size, *next_size
-    return()
+    return ()
 
-def jagged_shape(jagged_array: Union[List, np.ndarray, float]) -> list:
+def jagged_shape(jagged_array: list | np.ndarray | float) -> list:
     shape_tuple = []
     if isinstance(jagged_array, list):
         for array in jagged_array:
