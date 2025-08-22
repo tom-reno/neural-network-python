@@ -21,7 +21,7 @@ DEFAULT_MODE = 'training'
 DEFAULT_DATATYPE = 'csv'
 DEFAULT_ACTIVATION_FUNCTION = 'sigmoid'
 DEFAULT_AMOUNT_HIDDEN_LAYERS = 2
-DEFAULT_LEARNING_RATE = 0.01
+DEFAULT_LEARNING_RATE = 0.001
 DEFAULT_TRAINING_ITERATIONS = 1000
 DEFAULT_BATCH_SIZE = 10
 
@@ -65,7 +65,8 @@ def retrieve_image_data(files_names: list) -> tuple:
         elif file_name.endswith(SUPPORTED_IMG_FILES):
             names.append(file_name)
             labels.append(file.split('_')[0])
-            data.append(np.array(Image.open(file_name).resize(DEFAULT_IMAGE_SIZE)))
+            image = np.array(Image.open(file_name).resize(DEFAULT_IMAGE_SIZE))
+            data.append(np.ndarray.flatten(image))
         else:
             raise ValueError(f'Filetype {file.split('.')[-1]} is not supported')
     return names, labels, data

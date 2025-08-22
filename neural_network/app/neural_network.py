@@ -28,16 +28,16 @@ class NeuralNetwork:
         self.__activate_output = af.sigmoid_activation
         self.__derive_output = af.sigmoid_derivative
 
-        self.__amount_nodes = [amount_input_nodes]
+        self.__layers_shape = [amount_input_nodes]
         for i in range(self.__amount_hidden_layers):
-            self.__amount_nodes.append(int(self.__amount_nodes[i] / (i + 2) + len(self._targets)))
-        self.__amount_nodes.append(len(self._targets))
+            self.__layers_shape.append(int(self.__layers_shape[i] / (i + 2) + len(self._targets)))
+        self.__layers_shape.append(len(self._targets))
 
         self.__initialize_network()
 
     def __initialize_network(self):
         print(f'Initializing neural network with following properties:\n'
-              f'    - Amount input nodes: {self.__amount_nodes[0]}\n'
+              f'    - Amount input nodes: {self.__layers_shape[0]}\n'
               f'    - Amount hidden layers: {self.__amount_hidden_layers}\n'
               f'    - Activation function for hidden layers: {self.__activation_function}\n'
               f'    - Activation function for output layer: {self.__output_activation_function}\n'
@@ -48,24 +48,24 @@ class NeuralNetwork:
         self.__initialize_biases()
 
     def __initialize_weights(self):
-        # weights[layer starting from 0][current_layer_node][next_layer_node]
+        # weights[layer starting from 0][current layer node][next layer node]
         filename = self.__retrieve_weights_config_filename()
         if os.path.exists(filename):
             self._weights = fu.load(filename)
         else:
             self._weights = []
-            for i in range(len(self.__amount_nodes) - 1):
-                self._weights.append(np.random.rand(self.__amount_nodes[i], self.__amount_nodes[i + 1]) - 0.5)
+            for i in range(len(self.__layers_shape) - 1):
+                self._weights.append(np.random.rand(self.__layers_shape[i], self.__layers_shape[i + 1]) - 0.5)
 
     def __initialize_biases(self):
-        # biases[layer starting from 1][current_layer_node]
+        # biases[layer starting from 1][current layer node]
         filename = self.__retrieve_biases_config_filename()
         if os.path.exists(filename):
             self._biases = fu.load(filename)
         else:
             self._biases = []
-            for i in range(1, len(self.__amount_nodes)):
-                self._biases.append(np.random.rand(self.__amount_nodes[i]) - 0.5)
+            for i in range(1, len(self.__layers_shape)):
+                self._biases.append(np.random.rand(self.__layers_shape[i]) - 0.5)
 
     def predict(self, image) -> int:
         output = self.__propagate_forward(image)
@@ -93,7 +93,7 @@ class NeuralNetwork:
 
             if iteration % batch_size == 0:
                 # self.__save_configs(f'_cp_{iteration}')
-                print('#######################################################')
+                print('##################################################################')
                 for label, result in iteration_result.items():
                     print(f'Iteration {iteration} - Output label \'{label}\': {result:.5f} '
                           f'(max \'{iteration_result_max[label][0]}\': {iteration_result_max[label][1]:.5f})'
@@ -104,7 +104,7 @@ class NeuralNetwork:
 
     def __propagate_forward(self, image) -> list:
         self._layers = [self.__activate(image)]
-        for i in range(len(self.__amount_nodes) - 1):
+        for i in range(len(self.__layers_shape) - 1):
             sums_prev_nodes = np.dot(self._layers[i], self._weights[i]) + self._biases[i]
             if len(self._layers) <= self.__amount_hidden_layers:
                 self._layers.append(self.__activate(sums_prev_nodes))
@@ -117,7 +117,7 @@ class NeuralNetwork:
         errors = [np.subtract(expected_outputs, outputs).T]
         start_layer = len(self._layers) - 2
         for i in range(start_layer, 0, -1):
-            errors.insert(0, self._weights[i].dot(errors[0]))
+            errors.insert(0, self._weights[i].dot(errors[0]) / len(outputs))
 
         # Adjust biases and weights
         for i in range(start_layer, -1, -1):
@@ -151,14 +151,14 @@ class NeuralNetwork:
     def __retrieve_weights_config_filename(self, postfix=''):
         return (
             f'./data/config/weights_'
-            f'{''.join(f'({self.__amount_nodes[i]},{self.__amount_nodes[i + 1]})' for i in range(len(self.__amount_nodes) - 1))}'
+            f'{''.join(f'({self.__layers_shape[i]},{self.__layers_shape[i + 1]})' for i in range(len(self.__layers_shape) - 1))}'
             f'_{self.__activation_function}_{self.__output_activation_function}{postfix}.pkl'
         )
 
     def __retrieve_biases_config_filename(self, postfix=''):
         return (
             f'./data/config/biases_'
-            f'{''.join(f'({amount})' for amount in self.__amount_nodes)}'
+            f'{''.join(f'({amount})' for amount in self.__layers_shape)}'
             f'_{self.__activation_function}_{self.__output_activation_function}{postfix}.pkl'
         )
 
@@ -174,13 +174,12 @@ class NeuralNetwork:
             label_dict.setdefault(label, [])
             label_dict[label].append(shuffled_images[i])
 
-        lengths = set((np.unique(shuffled_labels, return_counts=True)[1]).tolist())
-        if len(lengths) > 1:
-            raise ValueError('Failed to permute list: inhomogeneous amount of labels')
-
         images.clear()
         labels.clear()
-        for i in range(lengths.pop()):
+
+        labels_lengths = np.unique(shuffled_labels, return_counts=True)[1]
+        for i in range(labels_lengths.max()):
             for k, v in label_dict.items():
-                images.append(v[i])
-                labels.append(k)
+                if i < len(label_dict.get(k)):
+                    labels.append(k)
+                    images.append(v[i])
